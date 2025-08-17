@@ -12,24 +12,24 @@ export default function Home() {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className="px-4 py-2 hover:bg-gray-800 rounded-md">Home</NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild>
+                <Link href="/" className="px-4 py-2 hover:bg-gray-800 rounded-md">Home</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/calendar" legacyBehavior passHref>
-                <NavigationMenuLink className="px-4 py-2 hover:bg-gray-800 rounded-md">Calendar</NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild>
+                <Link href="/calendar" className="px-4 py-2 hover:bg-gray-800 rounded-md">Calendar</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/volunteer" legacyBehavior passHref>
-                <NavigationMenuLink className="px-4 py-2 hover:bg-gray-800 rounded-md">Volunteer</NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild>
+                <Link href="/volunteer" className="px-4 py-2 hover:bg-gray-800 rounded-md">Volunteer</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/login" legacyBehavior passHref>
-                <NavigationMenuLink className="px-4 py-2 hover:bg-gray-800 rounded-md">Login</NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild>
+                <Link href="/login" className="px-4 py-2 hover:bg-gray-800 rounded-md">Login</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>

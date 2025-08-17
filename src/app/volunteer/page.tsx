@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,12 +12,28 @@ export default function VolunteerPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [user, setUser] = useState(null)
+  const [isSubmitted, setIsSubmitted] = useState(false)
   const supabase = createClient()
 
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
   const handleSubmit = async () => {
+    if (!user) {
+      // Redirect to login page if user is not logged in
+      window.location.href = '/login'
+      return
+    }
+
     const { error } = await supabase
       .from('volunteers')
-      .insert([{ name, email, phone }])
+      .insert([{ user_id: user.id, name, email, phone }])
 
     if (error) {
       console.error('Error inserting volunteer:', error.message)
@@ -25,7 +42,7 @@ export default function VolunteerPage() {
       setName('')
       setEmail('')
       setPhone('')
-      alert('Thank you for volunteering!')
+      setIsSubmitted(true)
     }
   }
 
@@ -34,26 +51,40 @@ export default function VolunteerPage() {
       <Card className="mx-auto max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Volunteer Registration</CardTitle>
-          <CardDescription>
-            Sign up to be a volunteer for the chess club.
-          </CardDescription>
+          {isSubmitted ? (
+            <CardDescription>
+              Thank you for volunteering!
+            </CardDescription>
+          ) : (
+            <CardDescription>
+              Sign up to be a volunteer for the chess club.
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Your Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+          {isSubmitted ? (
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Link href="/">
+                <Button>Go to Homepage</Button>
+              </Link>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          ) : (
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Your Name</Label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <Button onClick={handleSubmit} className="w-full">Sign Up to Volunteer</Button>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <Button onClick={handleSubmit} className="w-full">Sign Up to Volunteer</Button>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

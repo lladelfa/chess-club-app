@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { registerUserAndFamily } from '@/app/auth/actions'
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState<User | null>(null)
   const [parentName, setParentName] = useState('')
@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [children, setChildren] = useState([{ name: '', grade: '' }])
   const [isRegistered, setIsRegistered] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
+  const [email, setEmail] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isVolunteer, setIsVolunteer] = useState(false)
   const supabase = createClient()
@@ -52,108 +53,20 @@ export default function RegisterPage() {
   const handleSignUp = async () => {
     setErrorMessage('')
 
-    const processRegistration = async (userId: string) => {
-      // Step 1: Upsert parent information.
-      const { data: parentData, error: parentError } = await supabase
-        .from('parents')
-        .upsert(
-          { user_id: userId, name: parentName, email: email, phone: parentPhone, volunteer: isVolunteer },
-          { onConflict: 'user_id' }
-        )
-        .select('id')
-        .single()
-
-      if (parentError || !parentData) {
-        setErrorMessage(`Error saving your details: ${parentError?.message || 'No parent data returned.'}`)
-        return
-      }
-
-      const actualParentId = parentData.id
-
-      const childNamesToRegister = children
-        .map((child) => child.name.trim())
-        .filter((name) => name !== '')
-
-      if (childNamesToRegister.length === 0) {
-        setIsRegistered(true)
-        return
-      }
-
-      // Step 2: Check for already registered children for this parent.
-      const { data: existingChildren, error: fetchError } = await supabase
-        .from('children')
-        .select('name')
-        .eq('parent_id', actualParentId)
-        .in('name', childNamesToRegister)
-
-      if (fetchError) {
-        setErrorMessage(`Error checking for existing children: ${fetchError.message}`)
-        return
-      }
-
-      if (existingChildren && existingChildren.length > 0) {
-        const duplicateNames = existingChildren.map((c) => c.name).join(', ')
-        setErrorMessage(
-          `The following children are already registered: ${duplicateNames}. Please remove them or use a different name.`
-        )
-        return
-      }
-
-      // Step 3: Insert new children.
-      const childrenToInsert = children
-        .filter((child) => child.name.trim() !== '')
-        .map((child) => {
-          const grade = parseInt(child.grade, 10)
-          return {
-            parent_id: actualParentId,
-            name: child.name.trim(),
-            grade: !isNaN(grade) ? grade : null,
-          }
-        })
-
-      if (childrenToInsert.length > 0) {
-        const { error: childrenError } = await supabase.from('children').insert(childrenToInsert)
-
-        if (childrenError) {
-          if (childrenError.message.includes('duplicate key value violates unique constraint')) {
-            setErrorMessage(
-              'You have entered a child name that is already registered under your account. Please ensure each child has a unique name.'
-            )
-          } else {
-            setErrorMessage(`Error registering children: ${childrenError.message}`)
-          }
-          return
-        }
-      }
-
-      setIsRegistered(true)
-      // Clear the form for the next registration
-      setParentName('')
-      setParentPhone('')
-      setChildren([{ name: '', grade: '' }])
-      setIsVolunteer(false)
+    const registrationData = {
+      email,
+      password,
+      parentName,
+      phone: parentPhone,
+      children: children.map((child) => ({ name: child.name, grade: child.grade })),
+      isVolunteer,
     }
 
-    if (user) {
-      await processRegistration(user.id)
+    const { error } = await registerUserAndFamily(registrationData)
+    if (error) {
+      setErrorMessage(`Error registering: ${error.message}`)
     } else {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-
-      if (error) {
-        setErrorMessage(`Error signing up: ${error.message}`)
-        return
-      }
-
-      if (data.user) {
-        await processRegistration(data.user.id)
-      } else {
-        setErrorMessage(
-          'Sign up successful, but no user data returned. Please check your email to confirm your account.'
-        )
-      }
+      setIsRegistered(true)
     }
   }
 
@@ -179,7 +92,6 @@ export default function RegisterPage() {
         <CardContent>
           {isRegistered ? (
             <div className="flex flex-col items-center justify-center space-y-4">
-              <Button onClick={() => setIsRegistered(false)}>Register Another Student</Button>
               <Link href="/">
                 <Button variant="outline">Go to Homepage</Button>
               </Link>

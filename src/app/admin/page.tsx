@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface Child {
   id: number;
@@ -40,7 +42,12 @@ export default async function AdminPage() {
       <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
       
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Registered Students</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Registered Students</h2>
+          <Link href="/register">
+            <Button>Register a New Student</Button>
+          </Link>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white dark:bg-gray-800">
             <thead>

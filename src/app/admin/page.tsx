@@ -1,8 +1,25 @@
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+interface Child {
+  id: number;
+  name: string;
+  grade: string;
+}
+
+interface Parent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  volunteer: boolean;
+  children: Child[];
+}
+
 export default async function AdminPage() {
-  const supabase = createClient()
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
 
   const { data, error } = await supabase.auth.getUser()
   if (error || !data?.user) {
@@ -10,7 +27,13 @@ export default async function AdminPage() {
   }
 
   const { data: parents, error: parentsError } = await supabase.from('parents').select('*, children(*)')
-  const { data: volunteers, error: volunteersError } = await supabase.from('volunteers').select('*')
+
+  if (parentsError) {
+    console.error("Error fetching parents:", parentsError.message);
+    // Handle error appropriately, e.g., display an error message or redirect
+  }
+
+  const volunteers = parents?.filter((parent: Parent) => parent.volunteer) || [];
 
   return (
     <div className="container mx-auto py-10">
@@ -30,7 +53,7 @@ export default async function AdminPage() {
             </thead>
             <tbody>
               {parents?.map(parent => (
-                parent.children.map(child => (
+                parent.children.map((child: Child) => (
                   <tr key={child.id}>
                     <td className="py-2 px-4 border-b">{parent.name}</td>
                     <td className="py-2 px-4 border-b">{parent.email}</td>
@@ -56,7 +79,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {volunteers?.map(volunteer => (
+              {volunteers?.map((volunteer: Parent) => (
                 <tr key={volunteer.id}>
                   <td className="py-2 px-4 border-b">{volunteer.name}</td>
                   <td className="py-2 px-4 border-b">{volunteer.email}</td>

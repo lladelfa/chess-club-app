@@ -17,7 +17,7 @@ export type RegistrationData = {
 };
 
 export async function registerUserAndFamily(formData: RegistrationData) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   // 1. Sign up the user

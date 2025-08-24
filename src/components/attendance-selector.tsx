@@ -7,9 +7,9 @@ import { useTransition } from "react";
 import { cn } from "@/lib/utils";
 
 interface AttendanceSelectorProps {
-  childId?: number;
+  childId?: string;
   userId?: string;
-  eventId: number;
+  eventId: string;
   currentStatus: AttendanceStatus;
 }
 

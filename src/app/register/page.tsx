@@ -127,6 +127,11 @@ export default function RegisterPage() {
       }
 
       setIsRegistered(true)
+      // Clear the form for the next registration
+      setParentName('')
+      setParentPhone('')
+      setChildren([{ name: '', grade: '' }])
+      setIsVolunteer(false)
     }
 
     if (user) {

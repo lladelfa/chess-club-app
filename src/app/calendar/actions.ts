@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export type AttendanceStatus = "attending" | "not_attending" | "tbd";
 
-export async function getAttendanceForChild(childId: number, eventId: number) {
+export async function getAttendanceForChild(childId: string, eventId: string) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -21,7 +21,7 @@ export async function getAttendanceForChild(childId: number, eventId: number) {
   return data;
 }
 
-export async function getAttendanceForParent(userId: string, eventId: number) {
+export async function getAttendanceForParent(userId: string, eventId: string) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -30,14 +30,13 @@ export async function getAttendanceForParent(userId: string, eventId: number) {
     .select("status")
     .eq("user_id", userId)
     .eq("event_id", eventId)
-    .is("child_id", null)
     .single();
 
   return data;
 }
 
 export async function updateParentAttendance(
-  eventId: number,
+  eventId: string,
   status: AttendanceStatus
 ) {
   const cookieStore = await cookies();
@@ -55,6 +54,7 @@ export async function updateParentAttendance(
       user_id: user.id,
       event_id: eventId,
       status: status,
+      updated_at: new Date().toISOString(),
     },
     {
       onConflict: "user_id, event_id",
@@ -79,22 +79,38 @@ export async function getChildrenForParent() {
     throw new Error("User not found");
   }
 
+  const { data: parent, error: parentError } = await supabase
+    .from("parents")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (parentError) {
+    // A "not found" error (PGRST116) is expected if the user has no parent profile.
+    // In that case, we return an empty array of children.
+    if (parentError.code === 'PGRST116') {
+      return [];
+    }
+    // For any other unexpected database error, we should throw it.
+    throw parentError;
+  }
+
   const { data: children, error } = await supabase
     .from("children")
     .select("id, name")
-    .eq("parent_id", user.id);
+    .eq("parent_id", parent.id);
 
   if (error) {
     console.error("Error fetching children:", error.message);
     throw new Error(`Error fetching children: ${error.message}`);
   }
 
-  return children;
+  return children || [];
 }
 
 export async function updateAttendance(
-  childId: number,
-  eventId: number,
+  childId: string,
+  eventId: string,
   status: AttendanceStatus
 ) {
   const cookieStore = await cookies();
@@ -107,12 +123,23 @@ export async function updateAttendance(
     throw new Error("User not found");
   }
 
+  // Get parent id to verify child ownership
+  const { data: parent, error: parentError } = await supabase
+    .from("parents")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (parentError || !parent) {
+    throw new Error("Parent profile not found for the current user.");
+  }
+
   // Verify child belongs to the user
   const { data: child, error: childError } = await supabase
     .from("children")
     .select("id")
     .eq("id", childId)
-    .eq("parent_id", user.id)
+    .eq("parent_id", parent.id)
     .single();
 
   if (childError || !child) {
@@ -133,8 +160,8 @@ export async function updateAttendance(
   );
 
   if (error) {
-    console.error("Error updating attendance:", error);
-    throw new Error("Error updating child attendance");
+    console.error("Error updating child attendance:", error.message);
+    throw new Error(`Error updating child attendance: ${error.message}`);
   }
 
   revalidatePath("/calendar");

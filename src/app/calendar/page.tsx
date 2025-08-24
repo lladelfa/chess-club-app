@@ -13,6 +13,9 @@ import { EventCalendar } from "@/components/event-calendar";
 import type { AttendanceStatus } from "./actions";
 import { getChildrenForParent } from "./actions";
 
+const getAttendanceKey = (eventId: string, personId: string) =>
+  `${eventId}-${personId}`;
+
 export default async function CalendarPage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -25,28 +28,41 @@ export default async function CalendarPage() {
     return redirect("/login?message=You must be logged in to view the calendar");
   }
 
-  const { data: events } = await supabase
-    .from("events")
-    .select("*")
-    .order("event_date", { ascending: true });
-
-  const children = await getChildrenForParent();
-
-  const { data: attendanceData } = await supabase
-    .from("child_attendance")
-    .select("event_id, child_id, user_id, status")
-    .eq("user_id", user.id);
+  const [
+    { data: events },
+    children,
+    { data: childAttendanceData },
+    { data: parentAttendanceData },
+  ] = await Promise.all([
+    supabase
+      .from("events")
+      .select("*")
+      .order("event_date", { ascending: true }),
+    getChildrenForParent(),
+    supabase
+      .from("child_attendance")
+      .select("event_id, child_id, user_id, status")
+      .eq("user_id", user.id),
+    supabase
+      .from("parent_attendance")
+      .select("event_id, user_id, status")
+      .eq("user_id", user.id),
+  ]);
 
   if (!events || events.length === 0) {
     return <div className="container mx-auto py-10">No events scheduled.</div>;
   }
 
   const attendanceMap = new Map<string, AttendanceStatus>();
-  if (attendanceData) {
-    for (const record of attendanceData) {
-      const key = record.child_id
-        ? `${record.event_id}-${record.child_id}`
-        : `${record.event_id}-${record.user_id}`;
+  if (childAttendanceData) {
+    for (const record of childAttendanceData) {
+      const key = getAttendanceKey(record.event_id, record.child_id);
+      attendanceMap.set(key, record.status as AttendanceStatus);
+    }
+  }
+  if (parentAttendanceData) {
+    for (const record of parentAttendanceData) {
+      const key = getAttendanceKey(record.event_id, record.user_id);
       attendanceMap.set(key, record.status as AttendanceStatus);
     }
   }
@@ -86,7 +102,7 @@ export default async function CalendarPage() {
                       userId={user.id}
                       eventId={event.id}
                       currentStatus={
-                        attendanceMap.get(`${event.id}-${user.id}`) ?? "tbd"
+                        attendanceMap.get(getAttendanceKey(event.id, user.id)) ?? "tbd"
                       }
                     />
                   </div>
@@ -101,8 +117,7 @@ export default async function CalendarPage() {
                           childId={child.id}
                           eventId={event.id}
                           currentStatus={
-                            attendanceMap.get(`${event.id}-${child.id}`) ??
-                            "tbd"
+                            attendanceMap.get(getAttendanceKey(event.id, child.id)) ?? "tbd"
                           }
                         />
                       </div>

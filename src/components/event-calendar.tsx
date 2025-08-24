@@ -8,7 +8,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 const localizer = momentLocalizer(moment);
 
 interface Event {
-  id: number;
+  id: string;
   title: string;
   start: Date;
   end: Date;

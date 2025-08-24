@@ -44,12 +44,14 @@ CREATE TABLE public.children (
 -- Create child_attendance table
 CREATE TABLE public.child_attendance (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
   child_id uuid NOT NULL,
   event_id uuid NOT NULL,
   status public.attendance_status NOT NULL DEFAULT 'tbd'::public.attendance_status,
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT child_attendance_pkey PRIMARY KEY (id),
   CONSTRAINT child_attendance_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
+  CONSTRAINT child_attendance_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT child_attendance_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id),
   CONSTRAINT child_attendance_child_id_event_id_key UNIQUE (child_id, event_id)
 );
@@ -57,12 +59,12 @@ CREATE TABLE public.child_attendance (
 -- Create parent_attendance table
 CREATE TABLE public.parent_attendance (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  parent_id uuid NOT NULL,
+  user_id uuid NOT NULL,
   event_id uuid NOT NULL,
   status public.attendance_status NOT NULL DEFAULT 'tbd'::public.attendance_status,
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT parent_attendance_pkey PRIMARY KEY (id),
-  CONSTRAINT parent_attendance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.parents(id),
+  CONSTRAINT parent_attendance_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT parent_attendance_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id),
-  CONSTRAINT parent_attendance_user_id_event_id_key UNIQUE (parent_id, event_id)
+  CONSTRAINT parent_attendance_user_id_event_id_key UNIQUE (user_id, event_id)
 );

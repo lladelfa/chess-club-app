@@ -11,16 +11,18 @@ import { Label } from "@/components/ui/label"
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   const handleSignIn = async () => {
+    setError(null)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) {
-      console.error('Error signing in:', error.message)
+      setError(error.message)
     } else {
       router.push('/')
     }
@@ -49,6 +51,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
+            {error && <p className="text-red-500">{error}</p>}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -78,6 +81,18 @@ export default function LoginPage() {
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
               Login with Google
             </Button>
+            <div className="mt-4 text-center text-sm">
+              {error && error.includes('Invalid login credentials') && (
+                <p>
+                  <a href="/reset-password">Forgot your password?</a>
+                </p>
+              )}
+              {error && !error.includes('Invalid login credentials') && (
+                <p>
+                  No account found with this email. <a href="/register">Register</a>
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

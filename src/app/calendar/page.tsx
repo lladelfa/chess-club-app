@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from 'next/headers';
 import { redirect } from "next/navigation";
 import {
   Card,
@@ -17,8 +16,7 @@ const getAttendanceKey = (eventId: string, personId: string) =>
   `${eventId}-${personId}`;
 
 export default async function CalendarPage() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const {
     data: { user },

@@ -3,13 +3,11 @@
 import { AuthError } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
 // Action to get all users. Only admins can call this.
 export async function getUsers() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
   const { data: { user: adminUser } } = await supabase.auth.getUser()
 
   if (!adminUser || adminUser.app_metadata?.role !== 'admin') {
@@ -30,8 +28,7 @@ export async function getUsers() {
 
 // Action to update a user's role. Only admins can call this.
 export async function updateUserRole(userId: string, role: string | null) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user || user.app_metadata?.role !== 'admin') {

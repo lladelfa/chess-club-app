@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 
 type ChildData = {
   name: string;
@@ -17,8 +16,7 @@ export type RegistrationData = {
 };
 
 export async function registerUserAndFamily(formData: RegistrationData) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // 1. Sign up the user
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({

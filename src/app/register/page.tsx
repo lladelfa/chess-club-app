@@ -101,24 +101,31 @@ export default function RegisterPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="parent-name">Your Name</Label>
-                <Input id="parent-name" value={parentName} onChange={(e) => setParentName(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!user} />
-              </div>
               {!user && (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="parent-name">Your Name</Label>
+                    <Input id="parent-name" value={parentName} onChange={(e) => setParentName(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!user} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="parent-phone">Phone Number</Label>
+                    <Input id="parent-phone" value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} />
+                  </div>
+                </>
+              )}
+              {user && (
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <p>Registering as {user.email}</p>
                 </div>
               )}
-              <div className="grid gap-2">
-                <Label htmlFor="parent-phone">Phone Number</Label>
-                <Input id="parent-phone" value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} />
-              </div>
 
               <div className="flex items-center space-x-2">
                 <Checkbox id="volunteer" checked={isVolunteer} onCheckedChange={(checked) => setIsVolunteer(checked === true)} />

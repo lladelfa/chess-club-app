@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { logout } from "@/app/auth/actions"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export async function MainNav() {
   const supabase = await createClient();
@@ -28,15 +29,21 @@ export async function MainNav() {
           </NavigationMenuItem>
           <NavigationMenuItem>
             {data.user ? (
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src={data.user.user_metadata.avatar_url} />
-                  <AvatarFallback>{data.user.email?.[0].toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <form action={logout}>
-                  <Button variant="ghost" className="px-4 py-2 hover:bg-gray-800 rounded-md">Logout</Button>
-                </form>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar>
+                    <AvatarImage src={data.user.user_metadata.avatar_url || '/user-avatar.svg'} />
+                    <AvatarFallback>{data.user.email?.[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <form action={logout}>
+                      <Button variant="ghost" className="w-full">Logout</Button>
+                    </form>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <NavigationMenuLink asChild>

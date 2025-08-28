@@ -32,10 +32,10 @@ interface ChildData {
 }
 
 export type RegistrationData = {
-  parentName: string
-  phone: string
+  parentName?: string
+  phone?: string
   email: string
-  password: string
+  password?: string
   isVolunteer: boolean
   children: ChildData[]
 }
@@ -68,21 +68,37 @@ export async function registerUserAndFamily(formData: RegistrationData) {
       return { data: null, error: { name: 'AuthApiError', message: 'Could not sign up user. Please check your email for a confirmation link.' } }
     }
     user = signUpData.user
+  } else {
+    // If user is in session, get their name from the parents table
+    const { data: parent, error: parentError } = await supabase
+      .from('parents')
+      .select('name, phone')
+      .eq('user_id', user.id)
+      .single()
+
+    if (parentError && parentError.code !== 'PGRST116') {
+      console.error('Error fetching parent data:', parentError.message)
+      return { data: null, error: parentError }
+    }
+
+    if (parent) {
+      formData.parentName = formData.parentName || parent.name
+      formData.phone = formData.phone || parent.phone
+    }
   }
 
   // Upsert parent information
+  const parentInfo: { user_id: string; name?: string; email?: string; phone?: string; volunteer: boolean } = {
+    user_id: user.id,
+    email: user.email,
+    volunteer: formData.isVolunteer,
+  }
+  if(formData.parentName) parentInfo.name = formData.parentName
+  if(formData.phone) parentInfo.phone = formData.phone
+
   const { data: parentData, error: parentError } = await supabase
     .from('parents')
-    .upsert(
-      {
-        user_id: user.id,
-        name: formData.parentName,
-        email: user.email,
-        phone: formData.phone,
-        volunteer: formData.isVolunteer,
-      },
-      { onConflict: 'user_id' }
-    )
+    .upsert(parentInfo, { onConflict: 'user_id' })
     .select('id')
     .single()
 

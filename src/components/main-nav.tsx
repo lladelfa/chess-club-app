@@ -1,14 +1,12 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from 'next/headers';
 import { Button } from "@/components/ui/button"
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { logout } from "@/app/auth/actions"
 
 export async function MainNav() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
   const { data } = await supabase.auth.getUser()
 
   return (

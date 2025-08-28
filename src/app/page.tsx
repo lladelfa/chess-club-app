@@ -1,11 +1,9 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from 'next/headers';
 import { Button } from "@/components/ui/button"
 
 export default async function HomePage() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
   await supabase.auth.getUser()
 
   return (

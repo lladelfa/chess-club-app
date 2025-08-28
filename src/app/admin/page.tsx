@@ -1,8 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { getUsers } from './actions'
+import { UserManagement } from './user-management'
+import type { User } from '@supabase/supabase-js'
+
+// This type should ideally be in a shared file, like `src/lib/types.ts`,
+// and imported in both this page and the UserManagement component.
+type AppUser = User & {
+  app_metadata: { role?: string; [key: string]: any }
+}
 
 interface Child {
   id: number;
@@ -20,19 +28,34 @@ interface Parent {
 }
 
 export default async function AdminPage() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) {
     redirect('/login')
   }
 
-  const { data: parents, error: parentsError } = await supabase.from('parents').select('*, children(*)')
+  // Secure this page to only allow admin users
+  if (user.app_metadata?.role !== 'admin') {
+    redirect('/')
+  }
+
+  const [
+    { data: parents, error: parentsError },
+    { users, error: usersError }
+  ] = await Promise.all([
+    supabase.from('parents').select('*, children(*)'),
+    getUsers()
+  ])
 
   if (parentsError) {
     console.error("Error fetching parents:", parentsError.message);
-    // Handle error appropriately, e.g., display an error message or redirect
+    return (
+      <div className="container mx-auto py-10">
+        <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
+        <p className="text-red-500">Error fetching data: {parentsError.message}</p>
+      </div>
+    )
   }
 
   const volunteers = parents?.filter((parent: Parent) => parent.volunteer) || [];
@@ -40,6 +63,9 @@ export default async function AdminPage() {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
+
+      {users && <UserManagement users={users as AppUser[]} currentUserId={user.id} />}
+      {usersError && <p className="text-red-500">Error fetching users: {usersError.message}</p>}
       
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
@@ -59,7 +85,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {parents?.map(parent => (
+              {parents?.map((parent: Parent) => (
                 parent.children.map((child: Child) => (
                   <tr key={child.id}>
                     <td className="py-2 px-4 border-b">{parent.name}</td>

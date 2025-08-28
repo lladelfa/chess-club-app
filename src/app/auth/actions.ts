@@ -1,14 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function signIn(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -23,8 +21,7 @@ export async function signIn(formData: FormData) {
 }
 
 export async function logout() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/login')
 }
@@ -44,8 +41,7 @@ export type RegistrationData = {
 }
 
 export async function registerUserAndFamily(formData: RegistrationData) {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const {
     data: { session },

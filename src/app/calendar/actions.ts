@@ -1,15 +1,12 @@
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from 'next/headers';
 import { revalidatePath } from "next/cache";
 
 export type AttendanceStatus = "attending" | "not_attending" | "tbd";
 
 export async function getAttendanceForChild(childId: string, eventId: string) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const { data } = await supabase
     .from("child_attendance")
@@ -22,8 +19,7 @@ export async function getAttendanceForChild(childId: string, eventId: string) {
 }
 
 export async function getAttendanceForParent(userId: string, eventId: string) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const { data } = await supabase
     .from("parent_attendance")
@@ -39,8 +35,7 @@ export async function updateParentAttendance(
   eventId: string,
   status: AttendanceStatus
 ) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -69,8 +64,7 @@ export async function updateParentAttendance(
 }
 
 export async function getChildrenForParent() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -113,8 +107,7 @@ export async function updateAttendance(
   eventId: string,
   status: AttendanceStatus
 ) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   const {
     data: { user },

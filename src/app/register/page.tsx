@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { registerUserAndFamily } from '@/app/auth/actions'
 
 export default function RegisterPage() {
@@ -140,7 +141,19 @@ export default function RegisterPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor={`child-grade-${index}`}>Child&apos;s Grade</Label>
-                    <Input id={`child-grade-${index}`} type="number" value={child.grade} onChange={(e) => handleChildChange(index, 'grade', e.target.value)} />
+                    <Select onValueChange={(value) => handleChildChange(index, 'grade', value)} value={child.grade}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">K</SelectItem>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="4">4</SelectItem>
+                        <SelectItem value="5">5</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               ))}

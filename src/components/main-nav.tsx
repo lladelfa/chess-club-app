@@ -10,6 +10,8 @@ export async function MainNav() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser()
 
+  console.log(data.user);
+
   return (
     <header className="bg-gray-900 text-white py-4 px-6 flex items-center justify-between">
       <Link href="/" className="flex items-center gap-2">

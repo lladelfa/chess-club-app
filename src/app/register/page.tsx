@@ -61,6 +61,7 @@ export default function RegisterPage() {
       phone: parentPhone,
       children: children.map((child) => ({ name: child.name, grade: child.grade })),
       isVolunteer,
+      avatarUrl: user?.user_metadata?.avatar_url,
     }
 
     const { error } = await registerUserAndFamily(registrationData)
@@ -125,6 +126,18 @@ export default function RegisterPage() {
               {user && (
                 <div className="grid gap-2">
                   <p>Registering as {user.email}</p>
+                  {user?.user_metadata?.avatar_url && (
+                    <div className="flex items-center space-x-4 pt-2">
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt="Your avatar"
+                        className="w-16 h-16 rounded-full"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        We've got your avatar from Google.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

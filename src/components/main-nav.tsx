@@ -47,14 +47,14 @@ export async function MainNav() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
+              <div className="flex gap-2">
                 <NavigationMenuLink asChild>
                   <Link href="/login" className="px-4 py-2 hover:bg-gray-800 rounded-md">Login</Link>
                 </NavigationMenuLink>
                 <NavigationMenuLink asChild>
                   <Link href="/register" className="px-4 py-2 hover:bg-gray-800 rounded-md">Register</Link>
                 </NavigationMenuLink>
-              </>
+              </div>
             )}
           </NavigationMenuItem>
         </NavigationMenuList>
